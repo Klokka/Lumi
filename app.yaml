@@ -1,0 +1,7 @@
+name: Lumi
+version: 3.1
+release: Red
+icons:
+  win32: platform/msw/lumi.ico
+  osx:   static/Lumi.icns
+  gtk:   static/lumi-icon.png

@@ -1,0 +1,1 @@
+Lumi.show_manual

@@ -1,0 +1,5 @@
+#define LUMI_RELEASE_ID 3.1
+#define LUMI_RELEASE_NAME "Policeman"
+#define LUMI_REVISION 1825
+#define LUMI_BUILD_DATE 20130407
+#define LUMI_PLATFORM "i386-mingw32"
