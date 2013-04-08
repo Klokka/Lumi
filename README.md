@@ -1,6 +1,6 @@
 <pre>
-   |||   |||   | |||\  /|  ///_\
-    ||___ \\__/   || \/ |  //   \
+   |||    |||   | |||\  /| |||
+    ||___  \\__/   || \/ |  || 
   an artsy any-platform app kit
         forked form Shoes
 </pre>
