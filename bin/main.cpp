@@ -1,0 +1,110 @@
+//
+// main.c
+// The generic launcher for Lumi.
+//
+#include <stdio.h>
+#include <windows.h>
+//#include "lumi/app.h"
+#include "lumi/ruby.h"
+//#include "lumi/config.h"
+//#include "lumi/world.h"
+//#include "lumi/internal.h"
+
+#ifdef __APPLE__
+#include <crt_externs.h>
+#endif
+
+#ifdef LUMI_WIN32
+int WINAPI
+WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
+#else
+int
+main(argc, argv)
+  int argc;
+  char *argv[];
+#endif
+{
+  RAL::CppExporter::SetCoreRuntime();
+  Lumi::init();
+  
+#if 0
+  lumi_code code;
+  char *path = NULL;
+#ifdef __APPLE__
+  char **env = *_NSGetEnviron();
+#endif
+#ifdef LUMI_WIN32
+  int argc;
+  char **argv;
+  argc = lumi_win32_cmdvector(GetCommandLine(), &argv);
+#endif
+
+
+#ifdef LUMI_WIN32
+  path = SHOE_ALLOC_N(char, LUMI_BUFSIZE);
+  GetModuleFileName(NULL, (LPSTR)path, LUMI_BUFSIZE);
+#ifdef RUBY_1_9
+  rb_w32_sysinit(&argc, &argv);
+#else
+  NtInitialize(&argc, &argv);
+#endif
+#else
+  path = argv[0];
+#endif
+  if (argc > 1 && strcmp(argv[1], "--ruby") == 0)
+  {
+    char bootup[LUMI_BUFSIZE];
+    int len = lumi_snprintf(bootup,
+      LUMI_BUFSIZE,
+      "begin;"
+        "DIR = File.expand_path(File.dirname(%%q<%s>));"
+        "$:.replace([DIR+'/ruby/lib/'+PLATFORM, DIR+'/ruby/lib', DIR+'/lib', '.']);"
+        "require 'lumi/cache';"
+        "DIR;"
+      "rescue Object => e;"
+        "puts(e.message);"
+      "end",
+      path);
+
+    if (len < 0 || len >= LUMI_BUFSIZE)
+      return 0;
+
+    argc--;
+    argv[1] = argv[0];
+    argv = &argv[1];
+    {
+      RUBY_INIT_STACK
+      ruby_init();
+      rb_eval_string(bootup);
+#ifdef RUBY_1_9
+      return ruby_run_node(ruby_options(argc, argv));
+#else
+      ruby_options(argc, argv);
+      ruby_run();
+      return 0;
+#endif
+    }
+  }
+
+#ifdef LUMI_WIN32
+  code = lumi_init(inst, style);
+#else
+  code = lumi_init();
+#endif
+  if (code != LUMI_OK)
+    goto done;
+
+  lumi_set_argv(argc - 1, &argv[1]);
+  code = lumi_start(path, "/");
+  if (code != LUMI_OK)
+    goto done;
+
+done:
+#ifdef LUMI_WIN32
+  if (path != NULL)
+    SHOE_FREE(path);
+#endif
+  lumi_final();
+#endif
+  return 0;
+}

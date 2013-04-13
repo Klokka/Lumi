@@ -1,9 +1,9 @@
 //
-// shoes/stub32.h
+// lumi/stub32.h
 // Resource IDs (see stub32.rc also)
 //
-#ifndef SHOES_APPWIN32_H
-#define SHOES_APPWIN32_H
+#ifndef LUMI_APPWIN32_H
+#define LUMI_APPWIN32_H
 
 #include <commctrl.h>
 

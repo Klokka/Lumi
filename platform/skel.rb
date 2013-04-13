@@ -15,7 +15,7 @@ end
 # preprocess .skel
 task :build_skel do |t|
   Dir["bin/*.skel"].each do |src|
-    name = src.gsub(/\.skel$/, '.c')
+    name = src.gsub(/\.skel$/, '')
     File.open(src) do |skel|
       File.open(name, 'w') do |c|
         skel.each_line do |line|

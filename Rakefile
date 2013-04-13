@@ -176,7 +176,7 @@ end
 # preprocess .skel
 task :build_skel do |t|
   Dir["bin/*.skel"].each do |src|
-    name = src.gsub(/\.skel$/, '.c')
+    name = src.gsub(/\.skel$/, '')
     File.open(src) do |skel|
       File.open(name, 'w') do |c|
         skel.each_line do |line|
@@ -212,12 +212,20 @@ def cc(t)
   sh "#{CC} -I. -c -o #{t.name} #{LINUX_CFLAGS} #{t.source}"
 end
 
+def cc1(t)
+  sh "#{CC1} -I. -c -o #{t.name} #{LINUX_CFLAGS} #{CPPFLAGS} #{t.source}"
+end
+
 rule ".o" => ".m" do |t|
   cc t
 end
 
 rule ".o" => ".c" do |t|
   cc t
+end
+
+rule ".o" => ".cpp" do |t|
+  cc1 t
 end
 
 desc "Generate an installer for the current platform"
@@ -360,7 +368,7 @@ namespace :osx do
 
       cp_r  "fonts", "dist/fonts"
       cp_r  "lib", "dist/lib"
-      cp_r  "samples", "dist/samples"
+      # cp_r  "samples", "dist/samples"
       cp_r  "static", "dist/static"
       cp    "README.md", "dist/README.txt"
       cp    "CHANGELOG", "dist/CHANGELOG.txt"
@@ -431,7 +439,7 @@ namespace :osx do
   task :make_so do
     name = "dist/lib#{SONAME}.#{DLEXT}"
     ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+      sh "#{CC1} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
       %w[libpostproc.dylib libavformat.dylib libavcodec.dylib libavutil.dylib libruby.dylib].each do |libn|
         sh "install_name_tool -change /tmp/dep/lib/#{libn} ./deps/lib/#{libn} #{name}"
       end

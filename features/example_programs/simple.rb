@@ -1,4 +1,4 @@
-Shoes.app do
+Lumi.app do
   alert "Hello!"
   para "This a sample application"
   button "Alert!" do alert "Hello World!" end

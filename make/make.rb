@@ -28,6 +28,10 @@ module Make
     sh "#{CC} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{t.source}"
   end
 
+  def cc1(t)
+    sh "#{CC1} -I. -c -o#{t.name} #{LINUX_CFLAGS} #{CPPFLAGS} #{t.source}"
+  end
+
   # Subs in special variables
   def rewrite before, after, reg = /\#\{(\w+)\}/, reg2 = '\1'
     File.open(after, 'w') do |a|

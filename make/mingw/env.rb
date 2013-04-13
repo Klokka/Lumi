@@ -19,14 +19,15 @@ if ENV['VIDEO']
 end
 
 CC = ENV['CC'] ? ENV['CC'] : "gcc"
-file_list = %w{lumi/*.c lumi/native/windows.c lumi/http/winhttp.c lumi/http/windownload.c}
+CC1 = ENV['CC1'] ? ENV['CC1'] : "g++"
+file_list = %w{lumi/*.cpp ral/*.cpp}
 
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, ".o")
 end
 
-ADD_DLL = ['lumi/appwin32.o']
+ADD_DLL = [] # ['lumi/appwin32.o']
 
 # Linux build environment
 CAIRO_CFLAGS = "-I#{EXT_MINGW}/include/glib-2.0 -I#{EXT_MINGW}/lib/glib-2.0/include -I#{EXT_MINGW}/include/cairo"
@@ -70,3 +71,5 @@ cp APP['icons']['win32'], "lumi/appwin32.ico"
 LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(" ")
 
 LINUX_LIBS << " -L#{RbConfig::CONFIG['libdir']} #{CAIRO_LIB} #{PANGO_LIB} #{VLC_LIB}"
+
+CPPFLAGS = "" #-fno-rtti -fno-exceptions"

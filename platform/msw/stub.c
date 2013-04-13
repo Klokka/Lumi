@@ -2,12 +2,12 @@
 #include <stdlib.h>
 
 #define LONG_LONG long long
-#define SHOES_TIME DWORD
-#define SHOES_DOWNLOAD_ERROR DWORD
+#define LUMI_TIME DWORD
+#define LUMI_DOWNLOAD_ERROR DWORD
 
-#include "shoes/version.h"
-#include "shoes/internal.h"
-#include "shoes/http/winhttp.h"
+#include "lumi/version.h"
+#include "lumi/internal.h"
+#include "lumi/http/winhttp.h"
 #include "stub32.h"
 
 #define BUFSIZE 512
@@ -16,17 +16,17 @@ HWND dlg;
 BOOL http_abort = FALSE;
 
 int
-StubDownloadingShoes(shoes_http_event *event, void *data)
+StubDownloadingLumi(lumi_http_event *event, void *data)
 {
   TCHAR msg[512];
-  if (http_abort) return SHOES_DOWNLOAD_HALT;
-  if (event->stage == SHOES_HTTP_TRANSFER)
+  if (http_abort) return LUMI_DOWNLOAD_HALT;
+  if (event->stage == LUMI_HTTP_TRANSFER)
   {
-    sprintf(msg, "Shoes is downloading. (%d%% done)", event->percent);
+    sprintf(msg, "Lumi is downloading. (%d%% done)", event->percent);
     SetDlgItemText(dlg, IDSHOE, msg);
     SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, event->percent, 0L);
   }
-  return SHOES_DOWNLOAD_CONTINUE;
+  return LUMI_DOWNLOAD_CONTINUE;
 }
 
 void
@@ -69,10 +69,10 @@ stub_win32proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 void
-shoes_silent_install(TCHAR *path)
+lumi_silent_install(TCHAR *path)
 {
   SHELLEXECUTEINFO shell = {0};
-  SetDlgItemText(dlg, IDSHOE, "Setting up Shoes...");
+  SetDlgItemText(dlg, IDSHOE, "Setting up Lumi...");
   shell.cbSize = sizeof(SHELLEXECUTEINFO);
   shell.fMask = SEE_MASK_NOCLOSEPROCESS;
   shell.hwnd = NULL;
@@ -86,10 +86,10 @@ shoes_silent_install(TCHAR *path)
   WaitForSingleObject(shell.hProcess,INFINITE);
 }
 
-char *setup_exe = "shoes-setup.exe";
+char *setup_exe = "lumi-setup.exe";
 
 DWORD WINAPI
-shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
+lumi_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 {
   HINSTANCE inst = (HINSTANCE)vinst;
   TCHAR setup_path[BUFSIZE];
@@ -98,7 +98,7 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
 
   HANDLE install = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
-  HRSRC setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
+  HRSRC setupres = FindResource(inst, "LUMI_SETUP", RT_RCDATA);
   DWORD len = 0, rlen = 0;
   LPVOID data = NULL;
   len = SizeofResource(inst, setupres);
@@ -113,12 +113,12 @@ shoes_auto_setup(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID vinst)
   CloseHandle(install);
   SendMessage(GetDlgItem(dlg, IDPROG), PBM_SETPOS, 50, 0L);
 
-  shoes_silent_install(setup_path);
+  lumi_silent_install(setup_path);
   return 0;
 }
 
 DWORD WINAPI
-shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
+lumi_http_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
 {
   DWORD len = 0;
   WCHAR path[BUFSIZE];
@@ -130,9 +130,9 @@ shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   GetTempPath(BUFSIZE, setup_path);
   strncat(setup_path, setup_exe, strlen(setup_exe));
 
-  shoes_winhttp(NULL, L"www.rin-shun.com", 80, L"/pkg/win32/shoes",
+  lumi_winhttp(NULL, L"www.rin-shun.com", 80, L"/pkg/win32/lumi",
     NULL, NULL, NULL, 0, &buf, BUFSIZE,
-    INVALID_HANDLE_VALUE, &len, SHOES_DL_DEFAULTS, NULL, NULL);
+    INVALID_HANDLE_VALUE, &len, LUMI_DL_DEFAULTS, NULL, NULL);
   if (len == 0)
     return 0;
 
@@ -143,12 +143,12 @@ shoes_http_thread(IN DWORD mid, IN WPARAM w, LPARAM &l, IN LPVOID data)
   MultiByteToWideChar(CP_ACP, 0, buf, -1, path, BUFSIZE);
   file = CreateFile(setup_path, GENERIC_READ | GENERIC_WRITE,
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-  shoes_winhttp(NULL, L"www.rin-shun.com", 80, path,
+  lumi_winhttp(NULL, L"www.rin-shun.com", 80, path,
     NULL, NULL, NULL, 0, &empty, 0, file, &len,
-    SHOES_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingShoes), NULL);
+    LUMI_DL_DEFAULTS, HTTP_HANDLER(StubDownloadingLumi), NULL);
   CloseHandle(file);
 
-  shoes_silent_install(setup_path);
+  lumi_silent_install(setup_path);
   return 0;
 }
 
@@ -185,35 +185,35 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
   LPVOID data = NULL;
   TCHAR buf[BUFSIZE], path[BUFSIZE], cmd[BUFSIZE];
   HKEY hkey;
-  BOOL shoes;
+  BOOL lumi;
   DWORD plen;
   HANDLE payload, th;
   MSG msg;
-  char *key = "SOFTWARE\\Hackety.org\\Shoes";
+  char *key = "SOFTWARE\\Hackety.org\\Lumi";
 
-  nameres = FindResource(inst, "SHOES_FILENAME", RT_STRING);
-  shyres = FindResource(inst, "SHOES_PAYLOAD", RT_RCDATA);
+  nameres = FindResource(inst, "LUMI_FILENAME", RT_STRING);
+  shyres = FindResource(inst, "LUMI_PAYLOAD", RT_RCDATA);
   if (nameres == NULL || shyres == NULL)
   {
-    MessageBox(NULL, "This is an empty Shoes stub.", "shoes!! feel yeah!!", MB_OK);
+    MessageBox(NULL, "This is an empty Lumi stub.", "lumi!! feel yeah!!", MB_OK);
     return 0;
   }
 
-  setupres = FindResource(inst, "SHOES_SETUP", RT_RCDATA);
+  setupres = FindResource(inst, "LUMI_SETUP", RT_RCDATA);
   plen = sizeof(path);
-  if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
-    shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
+  if (!(lumi = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
+    lumi = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
 
-  if (shoes)
+  if (lumi)
   {
-    sprintf(cmd, "%s\\shoes.exe", path);
-    if (!file_exists(cmd)) shoes = FALSE;
+    sprintf(cmd, "%s\\lumi.exe", path);
+    if (!file_exists(cmd)) lumi = FALSE;
     memset(cmd, 0, BUFSIZE);
   }
 
-  if (!shoes)
+  if (!lumi)
   {
-    LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)shoes_auto_setup;
+    LPTHREAD_START_ROUTINE back_action = (LPTHREAD_START_ROUTINE)lumi_auto_setup;
 
     INITCOMMONCONTROLSEX InitCtrlEx;
     InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -224,7 +224,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     ShowWindow(dlg, SW_SHOW);
 
     if (setupres == NULL)
-      back_action = (LPTHREAD_START_ROUTINE)shoes_http_thread;
+      back_action = (LPTHREAD_START_ROUTINE)lumi_http_thread;
 
     if (!(th = CreateThread(0, 0, back_action, inst, 0, &tid)))
       return 0;
@@ -239,11 +239,11 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     }
     CloseHandle(th);
 
-    if (!(shoes = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
-      shoes = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
+    if (!(lumi = reg_s((hkey=HKEY_LOCAL_MACHINE), key, "", (LPBYTE)&path, &plen)))
+      lumi = reg_s((hkey=HKEY_CURRENT_USER), key, "", (LPBYTE)&path, &plen);
   }
 
-  if (shoes)
+  if (lumi)
   {
     GetTempPath(BUFSIZE, buf);
     data = LoadResource(inst, nameres);
@@ -263,7 +263,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
     }
     CloseHandle(payload);
 
-    sprintf(cmd, "%s\\..\\shoes.bat", path);
+    sprintf(cmd, "%s\\..\\lumi.bat", path);
     ShellExecute(NULL, "open", cmd, buf, NULL, 0);
   }
 

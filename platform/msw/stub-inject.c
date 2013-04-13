@@ -31,14 +31,14 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
       *ext = '\0';
     strcat(outPath, ".exe");
 
-    CopyFile("shoes-stub.exe", outPath, FALSE);
+    CopyFile("lumi-stub.exe", outPath, FALSE);
     HANDLE exe = BeginUpdateResource(outPath, FALSE);
-    UpdateResource(exe, RT_STRING, "SHOES_FILENAME", 
+    UpdateResource(exe, RT_STRING, "LUMI_FILENAME", 
       MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), fname, strlen(fname));
-    UpdateResource(exe, RT_RCDATA, "SHOES_PAYLOAD", 
+    UpdateResource(exe, RT_RCDATA, "LUMI_PAYLOAD", 
       MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), data, rlen);
 
-    payload = CreateFile("shoes-setup.exe", GENERIC_READ, FILE_SHARE_READ,
+    payload = CreateFile("lumi-setup.exe", GENERIC_READ, FILE_SHARE_READ,
       NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (payload != INVALID_HANDLE_VALUE)
     {
@@ -49,7 +49,7 @@ WinMain(HINSTANCE inst, HINSTANCE inst2, LPSTR arg, int style)
       SetFilePointer(payload, 0, 0, FILE_BEGIN);
       ReadFile(payload, setup, len, &setuplen, NULL);
       CloseHandle(payload);
-      UpdateResource(exe, RT_RCDATA, "SHOES_SETUP", 
+      UpdateResource(exe, RT_RCDATA, "LUMI_SETUP", 
         MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), setup, setuplen);
     }
     EndUpdateResource(exe, FALSE);

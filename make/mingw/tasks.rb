@@ -46,7 +46,8 @@ class MakeMinGW
     def make_app(name)
       bin = name
       rm_f bin
-      sh "#{CC} -Ldist -o #{bin} bin/main.o lumi/appwin32.o #{LINUX_LIBS} -llumi #{RbConfig::CONFIG['LDFLAGS']} -mwindows"
+      # sh "#{CC} -Ldist -o #{bin} bin/main.o lumi/appwin32.o #{LINUX_LIBS} -llumi #{RbConfig::CONFIG['LDFLAGS']} -mwindows"
+      sh "#{CC1} -Ldist -o #{bin} bin/main.o #{LINUX_LIBS} -llumi #{RbConfig::CONFIG['LDFLAGS']} -mwindows"
       rewrite "platform/nix/lumi.launch", name, %r!/lumi!, "/#{NAME}"
       sh %{echo 'cd "$OLDPWD"'}
       sh %{echo 'LD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
@@ -56,7 +57,7 @@ class MakeMinGW
 
     def make_so(name)
       ldflags = LINUX_LDFLAGS.sub! /INSTALL_NAME/, "-install_name @executable_path/lib#{SONAME}.#{DLEXT}"
-      sh "#{CC} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
+      sh "#{CC1} -o #{name} #{OBJ.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
 
     def make_installer
